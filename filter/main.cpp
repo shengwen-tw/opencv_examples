@@ -17,7 +17,7 @@ int main()
 
 	/* Median filter */
 	blur(src,dst,Size(3,3),Point(-1,-1));
-	imwrite("mean.jpg",dst);
+	imwrite("output/mean.jpg",dst);
 
 	return 0;
 }
