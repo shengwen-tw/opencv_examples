@@ -7,7 +7,10 @@ CC=g++
 
 #################################################################
 #include files
+CFLAGS+=-I/usr/local/include/
 CFLAGS=`pkg-config opencv --cflags` `pkg-config opencv --libs`
+CFLAGS+=-lraspicam_cv -lraspicam
+
 LDFLAGS:=
 
 #################################################################
