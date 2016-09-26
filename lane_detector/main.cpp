@@ -15,61 +15,61 @@ void LaneDetector::tune_hsv_thresholding()
 	namedWindow("tune hsv", 0);
 	
 	//create trackbars and insert them into window
-	createTrackbar("H_MIN", "tune hsv", &threshold_h_min, 256, on_trackbar);
-	createTrackbar("H_MAX", "tune hsv", &threshold_h_max, 256, on_trackbar);
-	createTrackbar("S_MIN", "tune hsv", &threshold_s_min, 256, on_trackbar);
-	createTrackbar("S_MAX", "tune hsv", &threshold_s_max, 256, on_trackbar);
-	createTrackbar("V_MIN", "tune hsv", &threshold_v_min, 256, on_trackbar);
-	createTrackbar("V_MAX", "tune hsv", &threshold_v_max, 256, on_trackbar);
+	createTrackbar("H_MIN", "tune hsv", &outer_threshold_h_min, 256, on_trackbar);
+	createTrackbar("H_MAX", "tune hsv", &outer_threshold_h_max, 256, on_trackbar);
+	createTrackbar("S_MIN", "tune hsv", &outer_threshold_s_min, 256, on_trackbar);
+	createTrackbar("S_MAX", "tune hsv", &outer_threshold_s_max, 256, on_trackbar);
+	createTrackbar("V_MIN", "tune hsv", &outer_threshold_v_min, 256, on_trackbar);
+	createTrackbar("V_MAX", "tune hsv", &outer_threshold_v_max, 256, on_trackbar);
+
+	createTrackbar("H_MIN", "tune hsv", &inner_threshold_h_min, 256, on_trackbar);
+	createTrackbar("H_MAX", "tune hsv", &inner_threshold_h_max, 256, on_trackbar);
+	createTrackbar("S_MIN", "tune hsv", &inner_threshold_s_min, 256, on_trackbar);
+	createTrackbar("S_MAX", "tune hsv", &inner_threshold_s_max, 256, on_trackbar);
+	createTrackbar("V_MIN", "tune hsv", &inner_threshold_v_min, 256, on_trackbar);
+	createTrackbar("V_MAX", "tune hsv", &inner_threshold_v_max, 256, on_trackbar);
 }
 
-void LaneDetector::lane_detect(cv::Mat& image)
+void mark_lane(cv::Mat& lane_mark_image, vector<Vec4i>& lines, Scalar line_color, Scalar dot_color, Scalar text_color)
 {
-	cv::Mat hsv_image, canny_image, threshold_image, hough_image;
+	for(size_t i = 0; i < lines.size(); i++) {  
+		Vec4i line = lines[i];
+		cv::line(lane_mark_image, Point(line[0], line[1]), Point(line[2], line[3]), line_color, 1, CV_AA);
+	}  
+}
 
+void LaneDetector::lane_detect(cv::Mat& raw_image)
+{
 	//cv::imshow("hsv image", hsv_image);
 
-	Canny(image, canny_image, 100, 200, 3);
-
-	cv::Mat test;
-	test = Scalar::all(0); 
-
-	image.copyTo(test, canny_image);
-
-	cv::imshow("original rgb image", test);
-
-	cv::imshow("Canny image", canny_image);
-
-	cv::cvtColor(test, hsv_image, COLOR_BGR2HSV);
+	cv::cvtColor(raw_image, outer_hsv_image, COLOR_BGR2HSV);
+	cv::cvtColor(raw_image, inner_hsv_image, COLOR_BGR2HSV);
 
 	cv::inRange(
-		hsv_image,
-		Scalar(threshold_h_min, threshold_s_min, threshold_v_min),
-		Scalar(threshold_h_max, threshold_s_max, threshold_v_max),
-		threshold_image
+		outer_hsv_image,
+		Scalar(outer_threshold_h_min, outer_threshold_s_min, outer_threshold_v_min),
+		Scalar(outer_threshold_h_max, outer_threshold_s_max, outer_threshold_v_max),
+		outer_threshold_image
 	);
 
-	//blur(threshold_image, hough_image, Size(3, 3));
+	cv::inRange(
+		inner_hsv_image,
+		Scalar(inner_threshold_h_min, inner_threshold_s_min, inner_threshold_v_min),
+		Scalar(inner_threshold_h_max, inner_threshold_s_max, inner_threshold_v_max),
+		inner_threshold_image
+	);
 
-	threshold_image.copyTo(hough_image);
+	Canny(outer_threshold_image, outer_canny_image, 100, 200, 3);
+	Canny(inner_threshold_image, inner_canny_image, 100, 200, 3);
 
-	std::vector<Vec2f> lines;
-	HoughLines(hough_image, lines, 1, CV_PI/180, 50);
+	vector<Vec4i> outter_lines, inner_lines;
+	HoughLinesP(outer_canny_image, outter_lines, 1, CV_PI / 180, 80, 50, 10);	
+	HoughLinesP(outer_canny_image, inner_lines, 1, CV_PI / 180, 80, 50, 10);	
 
-	for(size_t i = 0; i < lines.size(); i++ ) {  
-		float rho = lines[i][0], theta = lines[i][1];  
-		Point pt1, pt2;  
-		double a = cos(theta), b = sin(theta);  
-		double x0 = a*rho, y0 = b*rho;  
-		pt1.x = cvRound(x0 + 1000 * (-b));  
-		pt1.y = cvRound(y0 + 1000 * (a));  
-		pt2.x = cvRound(x0 - 1000 * (-b));  
-		pt2.y = cvRound(y0 - 1000 * (a));  
-		line(hough_image, pt1, pt2, Scalar(55,15,195), 1, CV_AA);  
-	} 
-
-	cv::imshow("threshold image", threshold_image);	
-	cv::imshow("hough tranform image", hough_image);
+	//cv::imshow("original rgb image", test);
+	//cv::imshow("Canny image", canny_image);
+	//cv::imshow("threshold image", threshold_image);	
+	//cv::imshow("hough tranform image", hough_image);
 }
 
 int main()
