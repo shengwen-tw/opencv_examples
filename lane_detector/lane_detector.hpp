@@ -13,6 +13,7 @@ class LaneDetector {
 
 	cv::Mat outer_hsv_image, outer_canny_image, outer_threshold_image, outer_hough_image;
 	cv::Mat inner_hsv_image, inner_canny_image, inner_threshold_image, inner_hough_image;
+	cv::Mat lane_mark_image;
 
 	public:
 	LaneDetector() :
