@@ -15,10 +15,7 @@ LDFLAGS:=
 SRC=$(wildcard *.cpp)
 
 #################################################################
-all:ground_projection 
-
 ground_projection:ground_projection.cpp
-	mkdir -p $(OUTPUT)
 	$(CC) $< $(LDFLAGS) $(CFLAGS) -o $@
 
 clean:
