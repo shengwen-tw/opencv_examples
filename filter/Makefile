@@ -15,14 +15,12 @@ LDFLAGS:=
 SRC=$(wildcard *.cpp)
 
 #################################################################
-OUTPUT=./output
 
 all:$(EXECUTABLE)
 
 $(EXECUTABLE):$(SRC)
-	mkdir -p $(OUTPUT)
 	$(CC) $< $(LDFLAGS) $(CFLAGS) -o $@
 
 clean:
-	rm -rf $(EXECUTABLE) $(OUTPUT)
+	rm -rf $(EXECUTABLE)
 #################################################################
